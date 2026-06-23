@@ -5,11 +5,12 @@ import warnings
 # Ignore PRAW async warnings
 warnings.filterwarnings("ignore", category=DeprecationWarning, module="praw")
 
-# Demo credentials (lab style)
+
 DEMO_CLIENT_ID = 'sIXZTihLNiKiHw'
 DEMO_CLIENT_SECRET = 'EjfAsmz5z8mDbZohe4UPYTPIZsYmOQ'
 DEMO_USER_AGENT = 'TestAgentPraw:v1 (by /u/TemporaryUser)'
 
+# MJ Part1
 try:
     reddit = praw.Reddit(
         client_id=DEMO_CLIENT_ID,
@@ -18,16 +19,36 @@ try:
         check_for_async=False
     )
 
-    print("PRAW instance created successfully.")
-    print("Read-only mode:", reddit.read_only)
-    print("Reddit URL:", reddit.config.reddit_url)
-
-    # Small test: fetch the top post from r/Python
-    subreddit = reddit.subreddit("Python")
-    post = next(subreddit.hot(limit=1))
-    print("\nTest fetch successful!")
-    print("Sample post title:", post.title)
-
 except Exception as e:
-    print("Error creating PRAW instance:")
-    print(e)
+    print("Error creating PRAW instance:", e)
+
+subreddits = [
+    "conspiracy",
+    "MichaelJackson",
+    "UnresolvedMysteries",
+    "PopCulture",
+    "TrueCrime"
+]
+
+posts_data = []
+
+for sub in subreddits:
+    subreddit = reddit.subreddit(sub)
+    print(f"Scraping r/{sub}...")
+
+    for post in subreddit.search("Michael Jackson", limit=200):
+        posts_data.append({
+            "subreddit": sub,
+            "title": post.title,
+            "text": post.selftext,
+            "score": post.score,
+            "num_comments": post.num_comments,
+            "created": post.created_utc,
+            "id": post.id,
+            "url": post.url
+        })
+
+df = pd.DataFrame(posts_data)
+df.to_csv("mj_reddit_posts.csv", index=False)
+
+print("Saved mj_reddit_posts.csv")
